@@ -3,42 +3,21 @@ import time
 from datetime import datetime
 import pyTigerGraph as tg
 import json
-from rdflib import Graph
+import rdflib
 import irisnative
-    
-CONFIG = json.load(open('config.json'))
-#print(CONFIG)
 
-conn = tg.TigerGraphConnection(
-    host=CONFIG['host'],
-    graphname=CONFIG['graph'],
-    username=CONFIG['username'],
-    password=CONFIG['password']
-)
+class tgconn:
+    CONFIG = json.load(open('config.json'))
+    conn = tg.TigerGraphConnection(
+        host=CONFIG['host'],
+        graphname=CONFIG['graph'],
+        username=CONFIG['username'],
+        password=CONFIG['password']
+        )
 
-conn.graphname="pyTest"
-authToken = conn.getToken(CONFIG['secret'], setToken=True, lifetime=10000)
-print(authToken)
-
-def rdfTest():
-    # Create a Graph
-    g = Graph()
-
-    # Parse in an RDF file hosted on the Internet
-    g.parse("http://www.w3.org/People/Berners-Lee/card")
-
-    # Loop through each triple in the graph (subj, pred, obj)
-    for subj, pred, obj in g:
-    # Check if there is at least one triple in the Graph
-        if (subj, pred, obj) not in g:
-            raise Exception("It better be!")
-
-    # Print the number of "triples" in the Graph
-    print(f"Graph g has {len(g)} statements.")
-    # Prints: Graph g has 86 statements.
-
-    #  Print out the entire Graph in the RDF Turtle format
-    print(g.serialize(format="turtle"))
+    conn.graphname="pyTest"
+    authToken = conn.getToken(CONFIG['secret'], setToken=True, lifetime=10000)
+    print(authToken)
 
 def set_test_global(iris_native):
     iris_native.set(8888, "^testglobal", "1")
@@ -65,10 +44,6 @@ def get_connection_info(file_name):
     return connections
 
 def run():
-
-    rdfTest()
-
-
     connection_detail = get_connection_info("connection.config")
 
     ip = connection_detail["ip"]
@@ -114,13 +89,12 @@ def run():
             conn.upsertVertex("person", row.s, attributes=None)
             conn.upsertVertex("project", row.o, attributes=None)
             conn.upsertEdge("person", row.s, row.p, "project", row.o, attributes={})
-        elif(row.p) == 'FRIENDS_WITH':
-            conn.upsertVertex("person", row.s, attributes=None)
-            conn.upsertVertex("person", row.o, attributes=None)
-            conn.upsertEdge("person", row.s, row.p, "person", row.o, attributes={})
       
 
         row = cursor.fetchone()
+
+
+
 
     end= datetime.now()
     print ("Total elapsed time: ")
@@ -128,6 +102,3 @@ def run():
 
 if __name__ == '__main__':
     run()
-    #graph = Graph()
-    #graph.parse("https://www.w3.org/People/Berners-Lee/card")
-    #list(graph.subjects(1))
